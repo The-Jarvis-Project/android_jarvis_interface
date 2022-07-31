@@ -1,11 +1,13 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(MaterialApp(
     title: 'Flutter Demo',
-    theme: ThemeData(
-      primarySwatch: Colors.green,
-    ),
+    darkTheme: ThemeData.dark(),
+    themeMode: ThemeMode.dark,
     home: const HomePage(),
   ));
 }
@@ -18,51 +20,97 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late final TextEditingController emailControl, passwordControl;
+  late TextEditingController textFieldControl;
+  List<String> responses = <String>["a", "b", "c", "c", "c", "c", "c", "c", "c",
+    "c", "c", "c", "c", "c", "a", "b", "c", "a", "b", "c"];
 
   @override
   void initState() {
-    emailControl = TextEditingController();
-    passwordControl = TextEditingController();
+    textFieldControl = TextEditingController();
     super.initState();
   }
 
   @override
   void dispose() {
-    emailControl.dispose();
-    passwordControl.dispose();
+    textFieldControl.dispose();
     super.dispose();
+  }
+
+  Future getProjectDetails() async {
+    var result = await http.get(Uri.parse('https://getProjectList'));
+    return result;
+  }
+
+  Widget buildListItem (BuildContext context, int index) {
+    return Container(
+      height: 30,
+      decoration: ShapeDecoration(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: const BorderSide(
+            width: 1,
+            color: Colors.transparent,
+          ),
+        ),
+        gradient: const LinearGradient(
+            colors: [Colors.indigo, Colors.indigoAccent],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter
+        ),
+      ),
+      child: Align(
+        alignment: Alignment.center,
+        child: Text(responses[index], style: const TextStyle(
+          fontSize: 16,
+        )),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Register")),
-      body: Column(
+      appBar: AppBar(
+        title: Text("Jarvis")
+      ),
+      body: Stack(
         children: [
-          TextField(
-            controller: emailControl,
-            decoration: const InputDecoration(
-              hintText: "Input email here",
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.all(
-                  Radius.circular(10)
-                ),
-                borderSide: BorderSide(
-                  color: Colors.green
-                )
-              )
-            ),
-          ),
-          TextField(
-            controller: passwordControl
-          ),
-          TextButton(
-            onPressed: () async {
-              final email = emailControl.text;
-              final password = passwordControl.text;
+          ListView.separated(
+            padding: const EdgeInsets.fromLTRB(40, 20, 40, 20),
+            itemCount: responses.length,
+            itemBuilder: (context, index) => buildListItem(context, index),
+            separatorBuilder: (context, index) {
+              return Container(
+                height: 20,
+              );
             },
-            child: const Text("Register")),
+          ),
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Container(
+              height: 50,
+              width: double.infinity,
+              color: ThemeData.dark().cardColor,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: textFieldControl,
+                      cursorColor: Colors.black,
+                      decoration: const InputDecoration(
+                        hintText: "Write message...",
+                        hintStyle: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12
+                        ),
+                        border: InputBorder.none
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          )
         ],
       ),
     );
