@@ -1,11 +1,7 @@
-import 'dart:convert';
-
-import 'package:android_jarvis_interface/jarvis_request.dart';
-import 'package:android_jarvis_interface/jarvis_response.dart';
+import 'package:android_jarvis_interface/linker_service.dart';
 import 'package:android_jarvis_interface/text_bubble.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 
 void main() {
   runApp(MaterialApp(
@@ -50,22 +46,8 @@ class _HomePageState extends State<HomePage> {
 
   void linkerPingLoop() async {
     while (true) {
-      var requestResult = await http.get(Uri.parse(
-          'https://jarvislinker.azurewebsites.net/api/JarvisRequests'));
-      var responseResult = await http.get(Uri.parse(
-          'https://jarvislinker.azurewebsites.net/api/JarvisResponses'));
-      List<dynamic> requestList = jsonDecode(requestResult.body),
-          responseList = jsonDecode(responseResult.body);
-
-      List<JarvisRequest> newRequests = <JarvisRequest>[];
-      List<JarvisResponse> newResponses = <JarvisResponse>[];
-      for (var i = 0; i < requestList.length; i++) {
-        newRequests.add(JarvisRequest.fromJson(requestList[i]));
-      }
-      for (var i = 0; i < responseList.length; i++) {
-        newResponses.add(JarvisResponse.fromJson(responseList[i]));
-      }
-
+      var newRequests = await Linker.getRequests();
+      var newResponses = await Linker.getResponses();
       List<TextBubble> textBubbles = <TextBubble>[];
       for (var i = 0; i < newRequests.length; i++) {
         textBubbles.insert(0, TextBubble(newRequests[i].id ?? -1,
@@ -97,15 +79,7 @@ class _HomePageState extends State<HomePage> {
     if (canSend && text.isNotEmpty) {
       canSend = false;
       textFieldControl.clear();
-      JarvisRequestDTO dto = JarvisRequestDTO(text);
-      String json = jsonEncode(dto);
-      await http.post(Uri.parse(
-          'https://jarvislinker.azurewebsites.net/api/JarvisRequests'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: json,
-      );
+      await Linker.sendRequest(text);
       linkerPingLoop();
       canSend = true;
     }
