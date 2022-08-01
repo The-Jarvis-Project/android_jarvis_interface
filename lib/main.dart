@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 
 void main() {
   runApp(MaterialApp(
-    title: 'Flutter Demo',
+    title: 'Jarvis Interface',
     darkTheme: ThemeData.dark(),
     themeMode: ThemeMode.dark,
     home: const HomePage(),
@@ -26,6 +26,8 @@ class _HomePageState extends State<HomePage> {
   late final TextEditingController textFieldControl;
   List<TextBubble> bubbles = <TextBubble>[];
 
+  bool canSend = true;
+
   @override
   void initState() {
     textFieldControl = TextEditingController();
@@ -42,9 +44,9 @@ class _HomePageState extends State<HomePage> {
   void linkerPingLoop() async {
     while (true) {
       var requestResult = await http.get(Uri.parse(
-          'https://jarvislinker.azurewebsites.net/api/JarvisRequests/'));
+          'https://jarvislinker.azurewebsites.net/api/JarvisRequests'));
       var responseResult = await http.get(Uri.parse(
-          'https://jarvislinker.azurewebsites.net/api/JarvisResponses/'));
+          'https://jarvislinker.azurewebsites.net/api/JarvisResponses'));
       List<dynamic> requestList = jsonDecode(requestResult.body),
           responseList = jsonDecode(responseResult.body);
 
@@ -59,14 +61,14 @@ class _HomePageState extends State<HomePage> {
 
       List<TextBubble> textBubbles = <TextBubble>[];
       for (var i = 0; i < newRequests.length; i++) {
-        textBubbles.add(TextBubble(newRequests[i].id ?? -1,
-            false, newRequests[i].request ?? "<Null>"));
+        textBubbles.insert(0, TextBubble(newRequests[i].id ?? -1,
+            false, newRequests[i].request ?? '<Null>'));
       }
       for (var i = 0; i < textBubbles.length; i++) {
         for (var r = 0; r < newResponses.length; r++) {
           if (newResponses[r].requestId == textBubbles[i].requestId) {
             textBubbles.insert(i + 1, TextBubble(-1,
-                true, newResponses[r].data ?? "<Null>"));
+                true, newResponses[r].data ?? '<Null>'));
             i++;
             break;
           }
@@ -76,32 +78,55 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         bubbles = textBubbles;
       });
-      await Future.delayed(const Duration(seconds: 2));
+      await Future.delayed(const Duration(milliseconds: 1250));
+    }
+  }
+  
+  void onPressSendButton(String text) async {
+    if (canSend) {
+      canSend = false;
+      JarvisRequestDTO dto = JarvisRequestDTO(text);
+      String json = jsonEncode(dto);
+      await http.post(Uri.parse(
+          'https://jarvislinker.azurewebsites.net/api/JarvisRequests'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: json,
+      );
+      linkerPingLoop();
+      canSend = true;
     }
   }
 
-  Widget buildListItem (BuildContext context, int index) {
-    return Container(
-      height: 30,
-      decoration: ShapeDecoration(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: const BorderSide(
-            width: 1,
-            color: Colors.transparent,
+  Widget buildChatBubble(BuildContext context, int index) {
+    bool isResponse = bubbles[index].isResponse;
+    return Align(
+      alignment: isResponse ? Alignment.centerLeft : Alignment.centerRight,
+      child: DecoratedBox(
+        // chat bubble decoration
+        decoration: BoxDecoration(
+          color: isResponse ? Colors.grey : Colors.indigo,
+          gradient: isResponse ? const LinearGradient(
+            colors: [Colors.white24, Colors.white24],
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+          ) : const LinearGradient(
+            colors: [Colors.indigo, Colors.indigoAccent],
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Text(
+            bubbles[index].message,
+            style: Theme.of(context).textTheme.bodyText1!.copyWith(
+              color: isResponse ? Colors.white : Colors.white,
+            ),
           ),
         ),
-        gradient: const LinearGradient(
-            colors: [Colors.indigo, Colors.indigoAccent],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter
-        ),
-      ),
-      child: Align(
-        alignment: Alignment.center,
-        child: Text(bubbles[index].message, style: const TextStyle(
-          fontSize: 16,
-        )),
       ),
     );
   }
@@ -111,24 +136,36 @@ class _HomePageState extends State<HomePage> {
       const SizedBox(width: 5),
       Expanded(
         child: SizedBox(
-          height: 20,
+          height: 40,
           child: TextField(
             controller: textFieldControl,
             cursorColor: Colors.white,
+            keyboardAppearance: Brightness.dark,
             style: const TextStyle(
-              fontSize: 12,
+              fontSize: 16,
             ),
             decoration: const InputDecoration(
-                hintText: "Write message...",
+                hintText: 'Write message...',
                 hintStyle: TextStyle(
                     color: Colors.grey,
-                    fontSize: 12
+                    fontSize: 16
                 ),
                 border: InputBorder.none
             ),
           ),
         ),
-      )
+      ),
+      const SizedBox(width: 5),
+      SizedBox(
+        height: 35,
+        width: 35,
+        child: FloatingActionButton(
+          onPressed: () => onPressSendButton(textFieldControl.text),
+          backgroundColor: Colors.indigo,
+          child: const Icon(Icons.send, color: Colors.white, size: 20),
+        ),
+      ),
+      const SizedBox(width: 5),
     ];
   }
 
@@ -136,15 +173,15 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Jarvis")
+        title: const Text('Jarvis')
       ),
       body: Stack(
         children: [
           ListView.separated(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 60),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 70),
             itemCount: bubbles.length,
-            itemBuilder: (context, index) => buildListItem(context, index),
-            reverse: true,
+            itemBuilder: (context, index) => buildChatBubble(context, index),
+            physics: const BouncingScrollPhysics(),
             separatorBuilder: (context, index) {
               return Container(
                 height: 20,
@@ -154,7 +191,7 @@ class _HomePageState extends State<HomePage> {
           Align(
             alignment: Alignment.bottomLeft,
             child: Container(
-              height: 40,
+              height: 50,
               width: double.infinity,
               color: ThemeData.dark().cardColor,
               child: Row(

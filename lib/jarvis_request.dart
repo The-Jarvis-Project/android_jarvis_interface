@@ -7,3 +7,12 @@ class JarvisRequest {
         id = json['id'],
         request = json['request'];
 }
+
+class JarvisRequestDTO {
+  final String request;
+  JarvisRequestDTO(this.request);
+
+  Map<String, dynamic> toJson() => {
+    'request': request,
+  };
+}
