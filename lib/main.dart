@@ -4,6 +4,7 @@ import 'package:android_jarvis_interface/jarvis_request.dart';
 import 'package:android_jarvis_interface/jarvis_response.dart';
 import 'package:android_jarvis_interface/text_bubble.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 void main() {
@@ -25,7 +26,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late final TextEditingController textFieldControl;
   List<TextBubble> bubbles = <TextBubble>[];
-
   bool canSend = true;
 
   @override
@@ -99,12 +99,11 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Widget buildChatBubble(BuildContext context, int index) {
+  Widget buildChatBubble(int index) {
     bool isResponse = bubbles[index].isResponse;
     return Align(
       alignment: isResponse ? Alignment.centerLeft : Alignment.centerRight,
       child: DecoratedBox(
-        // chat bubble decoration
         decoration: BoxDecoration(
           color: isResponse ? Colors.grey : Colors.indigo,
           gradient: isResponse ? const LinearGradient(
@@ -116,7 +115,12 @@ class _HomePageState extends State<HomePage> {
             begin: Alignment.bottomCenter,
             end: Alignment.topCenter,
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.only(
+            bottomLeft: const Radius.circular(16),
+            bottomRight: const Radius.circular(16),
+            topLeft: isResponse ? Radius.zero : const Radius.circular(16),
+            topRight: isResponse ? const Radius.circular(16) : Radius.zero,
+          ),
         ),
         child: Padding(
           padding: const EdgeInsets.all(12),
@@ -141,6 +145,7 @@ class _HomePageState extends State<HomePage> {
             controller: textFieldControl,
             cursorColor: Colors.white,
             keyboardAppearance: Brightness.dark,
+            onSubmitted: (value) => onPressSendButton(value),
             style: const TextStyle(
               fontSize: 16,
             ),
@@ -178,15 +183,13 @@ class _HomePageState extends State<HomePage> {
       body: Stack(
         children: [
           ListView.separated(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 70),
             itemCount: bubbles.length,
-            itemBuilder: (context, index) => buildChatBubble(context, index),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 70),
             physics: const BouncingScrollPhysics(),
-            separatorBuilder: (context, index) {
-              return Container(
-                height: 20,
-              );
-            },
+            itemBuilder: (_, index) => buildChatBubble(index),
+            separatorBuilder: (_, i) => Container(
+              height: 10,
+            ),
           ),
           Align(
             alignment: Alignment.bottomLeft,
