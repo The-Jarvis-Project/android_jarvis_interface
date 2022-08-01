@@ -84,6 +84,7 @@ class _HomePageState extends State<HomePage> {
   void onPressSendButton(String text) async {
     if (canSend) {
       canSend = false;
+      textFieldControl.clear();
       JarvisRequestDTO dto = JarvisRequestDTO(text);
       String json = jsonEncode(dto);
       await http.post(Uri.parse(
