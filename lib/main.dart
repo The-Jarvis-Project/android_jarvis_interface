@@ -4,16 +4,19 @@ import 'package:android_jarvis_interface/jarvis_request.dart';
 import 'package:android_jarvis_interface/jarvis_response.dart';
 import 'package:android_jarvis_interface/text_bubble.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 void main() {
   runApp(MaterialApp(
     title: 'Jarvis Interface',
-    darkTheme: ThemeData.dark(),
+    darkTheme: darkTheme,
     themeMode: ThemeMode.dark,
     home: const HomePage(),
   ));
 }
+
+ThemeData darkTheme = ThemeData.dark();
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -24,11 +27,14 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late final TextEditingController textFieldControl;
+  FocusNode textFocus = FocusNode();
+
   List<TextBubble> bubbles = <TextBubble>[];
   bool canSend = true;
 
   @override
   void initState() {
+    textFocus.addListener(textFieldFocusChange);
     textFieldControl = TextEditingController();
     linkerPingLoop();
     super.initState();
@@ -36,6 +42,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    textFocus.removeListener(textFieldFocusChange);
+    textFocus.dispose();
     textFieldControl.dispose();
     super.dispose();
   }
@@ -75,14 +83,18 @@ class _HomePageState extends State<HomePage> {
       }
 
       setState(() {
-        bubbles = textBubbles;
+        bubbles = textBubbles.reversed.toList();
       });
       await Future.delayed(const Duration(milliseconds: 1250));
     }
   }
-  
+
+  void textFieldFocusChange() {
+    debugPrint(textFocus.hasPrimaryFocus.toString());
+  }
+
   void onPressSendButton(String text) async {
-    if (canSend) {
+    if (canSend && text.isNotEmpty) {
       canSend = false;
       textFieldControl.clear();
       JarvisRequestDTO dto = JarvisRequestDTO(text);
@@ -105,7 +117,6 @@ class _HomePageState extends State<HomePage> {
       alignment: isResponse ? Alignment.centerLeft : Alignment.centerRight,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: isResponse ? Colors.grey : Colors.indigo,
           gradient: isResponse ? const LinearGradient(
             colors: [Colors.white24, Colors.white24],
             begin: Alignment.bottomCenter,
@@ -129,7 +140,7 @@ class _HomePageState extends State<HomePage> {
           child: Text(
             bubbles[index].message,
             style: Theme.of(context).textTheme.bodyText1!.copyWith(
-              color: isResponse ? Colors.white : Colors.white,
+              color: Colors.white,
             ),
           ),
         ),
@@ -139,30 +150,34 @@ class _HomePageState extends State<HomePage> {
 
   List<Widget> buildTextField() {
     return [
-      const SizedBox(width: 5),
+      const SizedBox(width: 10),
       Expanded(
         child: SizedBox(
-          height: 40,
+          height: 50,
           child: TextField(
+            textAlignVertical: TextAlignVertical.center,
+            autocorrect: true,
             controller: textFieldControl,
+            focusNode: textFocus,
+            onTap: textFieldFocusChange,
             cursorColor: Colors.white,
             keyboardAppearance: Brightness.dark,
             onSubmitted: (text) => onPressSendButton(text),
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: 18,
             ),
             decoration: const InputDecoration(
-                hintText: 'Write message...',
-                hintStyle: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 16
-                ),
-                border: InputBorder.none
+              hintText: 'Write message...',
+              hintStyle: TextStyle(
+                color: Colors.grey,
+                fontSize: 18,
+              ),
+              border: InputBorder.none
             ),
           ),
         ),
       ),
-      const SizedBox(width: 5),
+      const SizedBox(width: 10),
       SizedBox(
         height: 35,
         width: 35,
@@ -172,20 +187,18 @@ class _HomePageState extends State<HomePage> {
           child: const Icon(Icons.send, color: Colors.white, size: 20),
         ),
       ),
-      const SizedBox(width: 5),
+      const SizedBox(width: 10),
     ];
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Jarvis')
-      ),
       body: Stack(
         children: [
           ListView.separated(
             itemCount: bubbles.length,
+            reverse: true,
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 70),
             physics: const BouncingScrollPhysics(),
             itemBuilder: (_, index) => buildChatBubble(index),
@@ -198,12 +211,26 @@ class _HomePageState extends State<HomePage> {
             child: Container(
               height: 50,
               width: double.infinity,
-              color: ThemeData.dark().cardColor,
+              color: darkTheme.cardColor,
               child: Row(
                 children: buildTextField(),
               ),
             ),
-          )
+          ),
+          Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox(
+              height: 80,
+              child: AppBar(
+                title: const Text('Jarvis'),
+                elevation: 8,
+                backgroundColor: darkTheme.bottomAppBarColor.withAlpha(
+                  Color.getAlphaFromOpacity(0.9)
+                ),
+                systemOverlayStyle: SystemUiOverlayStyle.light,
+              ),
+            ),
+          ),
         ],
       ),
     );
