@@ -4,7 +4,6 @@ import 'package:android_jarvis_interface/jarvis_request.dart';
 import 'package:android_jarvis_interface/jarvis_response.dart';
 import 'package:android_jarvis_interface/text_bubble.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 void main() {
@@ -116,10 +115,12 @@ class _HomePageState extends State<HomePage> {
             end: Alignment.topCenter,
           ),
           borderRadius: BorderRadius.only(
-            bottomLeft: const Radius.circular(16),
-            bottomRight: const Radius.circular(16),
-            topLeft: isResponse ? Radius.zero : const Radius.circular(16),
-            topRight: isResponse ? const Radius.circular(16) : Radius.zero,
+            bottomLeft: const Radius.circular(50),
+            bottomRight: const Radius.circular(50),
+            topLeft: isResponse ? const Radius.circular(5)
+                : const Radius.circular(50),
+            topRight: isResponse ? const Radius.circular(50)
+                : const Radius.circular(5),
           ),
         ),
         child: Padding(
@@ -145,7 +146,7 @@ class _HomePageState extends State<HomePage> {
             controller: textFieldControl,
             cursorColor: Colors.white,
             keyboardAppearance: Brightness.dark,
-            onSubmitted: (value) => onPressSendButton(value),
+            onSubmitted: (text) => onPressSendButton(text),
             style: const TextStyle(
               fontSize: 16,
             ),
