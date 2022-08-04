@@ -1,11 +1,11 @@
 class JarvisResponse {
   final int? id, requestId;
-  final String? type, data;
-  JarvisResponse(this.id, this.type, this.data, this.requestId);
+  final String? origin, data;
+  JarvisResponse(this.id, this.origin, this.data, this.requestId);
 
   JarvisResponse.fromJson(Map<String, dynamic> json) :
         id = json['id'],
-        type = json['type'],
+        origin = json['origin'],
         data = json['data'],
         requestId = json['requestId'];
 }

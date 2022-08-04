@@ -51,13 +51,14 @@ class _HomePageState extends State<HomePage> {
       List<TextBubble> textBubbles = <TextBubble>[];
       for (var i = 0; i < newRequests.length; i++) {
         textBubbles.insert(0, TextBubble(newRequests[i].id ?? -1,
-            false, newRequests[i].request ?? '<Null>'));
+            false, newRequests[i].request ?? '<Null>', ''));
       }
       for (var i = 0; i < textBubbles.length; i++) {
         for (var r = 0; r < newResponses.length; r++) {
           if (newResponses[r].requestId == textBubbles[i].requestId) {
-            textBubbles.insert(i + 1, TextBubble(-1,
-                true, newResponses[r].data ?? '<Null>'));
+            textBubbles.insert(i + 1, TextBubble(-1, true,
+                newResponses[r].data ?? '<Null>',
+                newResponses[r].origin ?? '<Null>'));
             i++;
             break;
           }
@@ -87,38 +88,49 @@ class _HomePageState extends State<HomePage> {
 
   Widget buildChatBubble(int index) {
     bool isResponse = bubbles[index].isResponse;
-    return Align(
-      alignment: isResponse ? Alignment.centerLeft : Alignment.centerRight,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: isResponse ? const LinearGradient(
-            colors: [Colors.white24, Colors.white24],
-            begin: Alignment.bottomCenter,
-            end: Alignment.topCenter,
-          ) : const LinearGradient(
-            colors: [Colors.indigo, Colors.indigoAccent],
-            begin: Alignment.bottomCenter,
-            end: Alignment.topCenter,
-          ),
-          borderRadius: BorderRadius.only(
-            bottomLeft: const Radius.circular(50),
-            bottomRight: const Radius.circular(50),
-            topLeft: isResponse ? const Radius.circular(5)
-                : const Radius.circular(50),
-            topRight: isResponse ? const Radius.circular(50)
-                : const Radius.circular(5),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Text(
-            bubbles[index].message,
-            style: Theme.of(context).textTheme.bodyText1!.copyWith(
-              color: Colors.white,
+    return Column(
+      children: [
+        if (isResponse)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(bubbles[index].origin)
+          )
+        else
+          Container(),
+        Align(
+          alignment: isResponse ? Alignment.centerLeft : Alignment.centerRight,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: isResponse ? const LinearGradient(
+                colors: [Colors.white24, Colors.white24],
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+              ) : const LinearGradient(
+                colors: [Colors.indigo, Colors.indigoAccent],
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: const Radius.circular(50),
+                bottomRight: const Radius.circular(50),
+                topLeft: isResponse ? const Radius.circular(5)
+                    : const Radius.circular(50),
+                topRight: isResponse ? const Radius.circular(50)
+                    : const Radius.circular(5),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text(
+                bubbles[index].message,
+                style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                  color: Colors.white,
+                ),
+              ),
             ),
           ),
         ),
-      ),
+      ],
     );
   }
 
