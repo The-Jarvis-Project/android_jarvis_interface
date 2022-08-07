@@ -2,7 +2,6 @@ import 'package:android_jarvis_interface/linker_service.dart';
 import 'package:android_jarvis_interface/text_bubble.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/animation.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -22,12 +21,14 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late final TextEditingController textFieldControl;
   FocusNode textFocus = FocusNode();
 
-  List<TextBubble> bubbles = <TextBubble>[];
+  List<TextBubble> bubbles = <TextBubble>[], animatedBubbles = <TextBubble>[];
   bool canSend = true;
+
+  final GlobalKey<AnimatedListState> listKey = GlobalKey();
 
   @override
   void initState() {
@@ -68,9 +69,54 @@ class _HomePageState extends State<HomePage> {
 
       setState(() {
         bubbles = textBubbles.reversed.toList();
+        animateList();
       });
       await Future.delayed(const Duration(milliseconds: 1250));
     }
+  }
+
+  bool compareBubbles(TextBubble a, TextBubble b) {
+    return a.isResponse == b.isResponse && a.origin == b.origin &&
+        a.message == b.message && a.requestId == b.requestId;
+  }
+
+  void animateList() {
+    if (bubbles.length > animatedBubbles.length) {
+      for (var i = 0; i < bubbles.length; i++) {
+        if (animatedBubbles.length <= i) {
+          addListItem(i, bubbles[i]);
+        } else if (!compareBubbles(bubbles[i], animatedBubbles[i])) {
+          addListItem(i, bubbles[i]);
+        }
+      }
+    } else if (bubbles.length < animatedBubbles.length) {
+      for (var i = animatedBubbles.length - 1; i >= 0; i--) {
+        if (bubbles.length <= i) {
+          removeListItem(i);
+        } else if (!compareBubbles(bubbles[i], animatedBubbles[i])) {
+          removeListItem(i);
+        }
+      }
+    } else {
+
+    }
+  }
+
+  void addListItem(int index, TextBubble bubble) {
+    animatedBubbles.insert(index, bubble);
+    listKey.currentState!.insertItem(index,
+      duration: const Duration(milliseconds: 500)
+    );
+  }
+
+  void removeListItem(int index) {
+    listKey.currentState!.removeItem(index, (_, animation) {
+      return FadeTransition(
+        opacity: animation,
+        child: Container(),
+      );
+    }, duration: const Duration(seconds: 0));
+    animatedBubbles.removeAt(index);
   }
 
   void textFieldFocusChange() {
@@ -87,14 +133,14 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Widget buildChatBubble(int index) {
-    bool isResponse = bubbles[index].isResponse;
+  Widget buildChatBubble(TextBubble bubble) {
+    bool isResponse = bubble.isResponse;
     return Column(
       children: [
         if (isResponse)
           Align(
             alignment: Alignment.centerLeft,
-            child: Text(bubbles[index].origin)
+            child: Text(bubble.origin)
           )
         else
           Container(),
@@ -123,7 +169,7 @@ class _HomePageState extends State<HomePage> {
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Text(
-                bubbles[index].message,
+                bubble.message,
                 style: Theme.of(context).textTheme.bodyText1!.copyWith(
                   color: Colors.white,
                 ),
@@ -233,15 +279,30 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Stack(
         children: [
-          ListView.separated(
-            itemCount: bubbles.length,
+          AnimatedList(
+            initialItemCount: 0,
             reverse: true,
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 70),
             physics: const BouncingScrollPhysics(),
-            itemBuilder: (_, index) => buildChatBubble(index),
-            separatorBuilder: (_, i) => Container(
-              height: 10,
-            ),
+            key: listKey,
+            itemBuilder: (_, index, animation) {
+              return SizeTransition(
+                key: UniqueKey(),
+                sizeFactor: animation.drive(
+                  CurveTween(curve: Curves.fastOutSlowIn)
+                ),
+                child: ScaleTransition(
+                  key: UniqueKey(),
+                  alignment: animatedBubbles[index].isResponse
+                    ? Alignment.topLeft
+                    : Alignment.topRight,
+                  scale: animation.drive(
+                    CurveTween(curve: Curves.fastOutSlowIn)
+                  ),
+                  child: buildChatBubble(animatedBubbles[index]),
+                ),
+              );
+            },
           ),
           Align(
             alignment: Alignment.bottomLeft,
