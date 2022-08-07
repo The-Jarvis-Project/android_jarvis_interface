@@ -2,6 +2,7 @@ import 'package:android_jarvis_interface/linker_service.dart';
 import 'package:android_jarvis_interface/text_bubble.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/animation.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -180,6 +181,56 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: ClipRRect(
+        borderRadius: const BorderRadius.horizontal(
+          left: Radius.zero,
+          right: Radius.circular(50),
+        ),
+        child: Drawer(
+          child: ListView(
+            children: [
+              const DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Colors.black38,
+                ),
+                padding: EdgeInsets.all(15),
+                child: Align(
+                  alignment: Alignment.bottomLeft,
+                  child: Text(
+                    "Menu",
+                    style: TextStyle(
+                      fontSize: 30,
+                    ),
+                  ),
+                ),
+              ),
+              ListTile(
+                subtitle: const Text(
+                  "Show more information about this app",
+                  style: TextStyle(
+                    fontSize: 12,
+                  ),
+                ),
+                title: const Text(
+                  "About",
+                  style: TextStyle(
+                    fontSize: 18,
+                  ),
+                ),
+                onTap: () => showAboutDialog(
+                  context: context,
+                  applicationName: "Jarvis Interface",
+                  applicationVersion: "0.1.1",
+                  children: [
+                    const Text("Jarvis interfaces such as these allow the user"
+                        " to talk to the Jarvis AI system."),
+                  ],
+                ),
+              )
+            ],
+          )
+        ),
+      ),
       body: Stack(
         children: [
           ListView.separated(
@@ -194,12 +245,18 @@ class _HomePageState extends State<HomePage> {
           ),
           Align(
             alignment: Alignment.bottomLeft,
-            child: Container(
-              height: 50,
-              width: double.infinity,
-              color: darkTheme.cardColor,
-              child: Row(
-                children: buildTextField(),
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  height: 50,
+                  width: double.infinity,
+                  color: darkTheme.cardColor,
+                  child: Row(
+                    children: buildTextField(),
+                  ),
+                ),
               ),
             ),
           ),
