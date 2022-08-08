@@ -1,18 +1,29 @@
 import 'package:android_jarvis_interface/linker_service.dart';
 import 'package:android_jarvis_interface/text_bubble.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 void main() {
   runApp(MaterialApp(
     title: 'Jarvis Interface',
-    darkTheme: darkTheme,
-    themeMode: ThemeMode.dark,
+    theme: ThemeData(
+      colorScheme: const ColorScheme.light(
+        primary: Colors.lightBlueAccent,
+        secondary: Colors.lightBlue,
+        background: Colors.white,
+      ),
+      useMaterial3: true,
+    ),
+    darkTheme: ThemeData(
+      colorScheme: const ColorScheme.dark(
+        primary: Colors.indigoAccent,
+        secondary: Colors.teal,
+        background: Colors.white12,
+      ),
+      useMaterial3: true,
+    ),
     home: const HomePage(),
   ));
 }
-
-ThemeData darkTheme = ThemeData.dark();
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -22,6 +33,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
+  final String version = "0.1.2";
   late final TextEditingController textFieldControl;
   FocusNode textFocus = FocusNode();
 
@@ -55,6 +67,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         textBubbles.insert(0, TextBubble(newRequests[i].id ?? -1,
             false, newRequests[i].request ?? '<Null>', ''));
       }
+
+      textBubbles.sort((a, b) {
+        if (a.requestId > b.requestId) {
+          return 1;
+        } else if (a.requestId < b.requestId) {
+          return -1;
+        } else {
+          return 0;
+        }
+      });
+
       for (var i = 0; i < textBubbles.length; i++) {
         for (var r = 0; r < newResponses.length; r++) {
           if (newResponses[r].requestId == textBubbles[i].requestId) {
@@ -97,8 +120,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           removeListItem(i);
         }
       }
-    } else {
-
     }
   }
 
@@ -137,6 +158,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     bool isResponse = bubble.isResponse;
     return Column(
       children: [
+        Container(
+          height: 10,
+        ),
         if (isResponse)
           Align(
             alignment: Alignment.centerLeft,
@@ -148,12 +172,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           alignment: isResponse ? Alignment.centerLeft : Alignment.centerRight,
           child: DecoratedBox(
             decoration: BoxDecoration(
-              gradient: isResponse ? const LinearGradient(
-                colors: [Colors.white24, Colors.white24],
+              gradient: isResponse ? LinearGradient(
+                colors: [Theme.of(context).colorScheme.background,
+                  Theme.of(context).colorScheme.background],
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
-              ) : const LinearGradient(
-                colors: [Colors.indigo, Colors.indigoAccent],
+              ) : LinearGradient(
+                colors: [Theme.of(context).colorScheme.secondary,
+                  Theme.of(context).colorScheme.primary],
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
               ),
@@ -170,9 +196,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               padding: const EdgeInsets.all(12),
               child: Text(
                 bubble.message,
-                style: Theme.of(context).textTheme.bodyText1!.copyWith(
-                  color: Colors.white,
-                ),
+                style: Theme.of(context).textTheme.bodyText1,
               ),
             ),
           ),
@@ -193,16 +217,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             controller: textFieldControl,
             focusNode: textFocus,
             onTap: textFieldFocusChange,
-            cursorColor: Colors.white,
-            keyboardAppearance: Brightness.dark,
             onSubmitted: (text) => onPressSendButton(text),
             style: const TextStyle(
               fontSize: 18,
             ),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: 'Write message...',
               hintStyle: TextStyle(
-                color: Colors.grey,
+                color: Theme.of(context).textTheme.subtitle1?.backgroundColor,
                 fontSize: 18,
               ),
               border: InputBorder.none
@@ -216,7 +238,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         width: 35,
         child: FloatingActionButton(
           onPressed: () => onPressSendButton(textFieldControl.text),
-          backgroundColor: Colors.indigo,
           child: const Icon(Icons.send, color: Colors.white, size: 20),
         ),
       ),
@@ -227,6 +248,20 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar:AppBar(
+        title: Text('Jarvis',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        iconTheme: IconThemeData(
+          color: Theme.of(context).iconTheme.color,
+        ),
+        elevation: 10,
+        surfaceTintColor: Colors.transparent,
+        backgroundColor: Theme.of(context).cardColor.withAlpha(
+          Color.getAlphaFromOpacity(0.9)
+        ),
+      ),
       drawer: ClipRRect(
         borderRadius: const BorderRadius.horizontal(
           left: Radius.zero,
@@ -234,13 +269,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ),
         child: Drawer(
           child: ListView(
+            physics: const NeverScrollableScrollPhysics(),
             children: [
-              const DrawerHeader(
+              DrawerHeader(
                 decoration: BoxDecoration(
-                  color: Colors.black38,
+                  color: Theme.of(context).cardColor,
                 ),
-                padding: EdgeInsets.all(15),
-                child: Align(
+                padding: const EdgeInsets.all(15),
+                child: const Align(
                   alignment: Alignment.bottomLeft,
                   child: Text(
                     "Menu",
@@ -266,7 +302,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 onTap: () => showAboutDialog(
                   context: context,
                   applicationName: "Jarvis Interface",
-                  applicationVersion: "0.1.1",
+                  applicationVersion: version,
                   children: [
                     const Text("Jarvis interfaces such as these allow the user"
                         " to talk to the Jarvis AI system."),
@@ -313,25 +349,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 child: Container(
                   height: 50,
                   width: double.infinity,
-                  color: darkTheme.cardColor,
+                  color: Theme.of(context).cardColor,
                   child: Row(
                     children: buildTextField(),
                   ),
                 ),
-              ),
-            ),
-          ),
-          Align(
-            alignment: Alignment.topLeft,
-            child: SizedBox(
-              height: 80,
-              child: AppBar(
-                title: const Text('Jarvis'),
-                elevation: 8,
-                backgroundColor: darkTheme.bottomAppBarColor.withAlpha(
-                  Color.getAlphaFromOpacity(0.9)
-                ),
-                systemOverlayStyle: SystemUiOverlayStyle.light,
               ),
             ),
           ),
