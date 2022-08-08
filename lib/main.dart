@@ -184,11 +184,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 end: Alignment.topCenter,
               ),
               borderRadius: BorderRadius.only(
-                bottomLeft: const Radius.circular(50),
-                bottomRight: const Radius.circular(50),
+                bottomLeft: const Radius.circular(25),
+                bottomRight: const Radius.circular(25),
                 topLeft: isResponse ? const Radius.circular(5)
-                    : const Radius.circular(50),
-                topRight: isResponse ? const Radius.circular(50)
+                    : const Radius.circular(25),
+                topRight: isResponse ? const Radius.circular(25)
                     : const Radius.circular(5),
               ),
             ),
