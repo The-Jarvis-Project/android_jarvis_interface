@@ -33,7 +33,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
-  final String version = "0.1.2";
+  final String version = '0.1.2';
   late final TextEditingController textFieldControl;
   FocusNode textFocus = FocusNode();
 
@@ -279,7 +279,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 child: const Align(
                   alignment: Alignment.bottomLeft,
                   child: Text(
-                    "Menu",
+                    'Menu',
                     style: TextStyle(
                       fontSize: 30,
                     ),
@@ -288,24 +288,24 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               ),
               ListTile(
                 subtitle: const Text(
-                  "Show more information about this app",
+                  'Show more information about this app',
                   style: TextStyle(
                     fontSize: 12,
                   ),
                 ),
                 title: const Text(
-                  "About",
+                  'About',
                   style: TextStyle(
                     fontSize: 18,
                   ),
                 ),
                 onTap: () => showAboutDialog(
                   context: context,
-                  applicationName: "Jarvis Interface",
+                  applicationName: 'Jarvis Interface',
                   applicationVersion: version,
                   children: [
-                    const Text("Jarvis interfaces such as these allow the user"
-                        " to talk to the Jarvis AI system."),
+                    const Text('Jarvis interfaces such as these allow the user'
+                        ' to talk to the Jarvis AI system.'),
                   ],
                 ),
               )
