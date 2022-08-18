@@ -3,26 +3,28 @@ import 'package:android_jarvis_interface/text_bubble.dart';
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(MaterialApp(
-    title: 'Jarvis Interface',
-    theme: ThemeData(
-      colorScheme: const ColorScheme.light(
-        primary: Colors.lightBlueAccent,
-        secondary: Colors.lightBlue,
-        background: Colors.white,
+  runApp(
+    MaterialApp(
+      title: 'Jarvis Interface',
+      theme: ThemeData(
+        colorScheme: const ColorScheme.light(
+          primary: Colors.tealAccent,
+          secondary: Colors.lightGreenAccent,
+          background: Colors.white,
+        ),
+        useMaterial3: true,
       ),
-      useMaterial3: true,
-    ),
-    darkTheme: ThemeData(
-      colorScheme: const ColorScheme.dark(
-        primary: Colors.indigoAccent,
-        secondary: Colors.teal,
-        background: Colors.white12,
+      darkTheme: ThemeData(
+        colorScheme: const ColorScheme.dark(
+          primary: Colors.indigoAccent,
+          secondary: Colors.teal,
+          background: Colors.white12,
+        ),
+        useMaterial3: true,
       ),
-      useMaterial3: true,
-    ),
-    home: const HomePage(),
-  ));
+      home: const HomePage(),
+    )
+  );
 }
 
 class HomePage extends StatefulWidget {
@@ -33,7 +35,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
-  final String version = '0.1.2';
+  final String version = '0.1.3';
   late final TextEditingController textFieldControl;
   FocusNode textFocus = FocusNode();
 
@@ -256,7 +258,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         iconTheme: IconThemeData(
           color: Theme.of(context).iconTheme.color,
         ),
-        elevation: 10,
+        elevation: 0,
         surfaceTintColor: Colors.transparent,
         backgroundColor: Theme.of(context).cardColor.withAlpha(
           Color.getAlphaFromOpacity(0.9)
@@ -315,6 +317,20 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       ),
       body: Stack(
         children: [
+          Opacity(
+            opacity: 0.05,
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient:  LinearGradient(
+                  colors: [
+                    Colors.lightBlueAccent,
+                    Colors.cyanAccent,
+                  ],
+                  transform: GradientRotation(1),
+                )
+              ),
+            ),
+          ),
           AnimatedList(
             initialItemCount: 0,
             reverse: true,
@@ -344,19 +360,26 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             alignment: Alignment.bottomLeft,
             child: Padding(
               padding: const EdgeInsets.all(10),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
                 child: Container(
                   height: 50,
                   width: double.infinity,
-                  color: Theme.of(context).cardColor,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: const [
+                      BoxShadow(
+                        blurRadius: 12,
+                        offset: Offset(2, 4),
+                        color: Colors.black26,
+                      ),
+                    ],
+                  ),
                   child: Row(
                     children: buildTextField(),
                   ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
