@@ -81,13 +81,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       });
 
       for (var i = 0; i < textBubbles.length; i++) {
-        for (var r = 0; r < newResponses.length; r++) {
-          if (newResponses[r].requestId == textBubbles[i].requestId) {
-            textBubbles.insert(i + 1, TextBubble(-1, true,
-                newResponses[r].data ?? '<Null>',
-                newResponses[r].origin ?? '<Null>'));
-            i++;
-            break;
+        if (!textBubbles[i].isResponse) {
+          int curIndex = 1;
+          for (var r = 0; r < newResponses.length; r++) {
+            if (newResponses[r].requestId == textBubbles[i].requestId) {
+              textBubbles.insert(i + curIndex, TextBubble(-1, true,
+                  newResponses[r].data ?? '<Null>',
+                  newResponses[r].origin ?? '<Null>'));
+              curIndex++;
+            }
           }
         }
       }
